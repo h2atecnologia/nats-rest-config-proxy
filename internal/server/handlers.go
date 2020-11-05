@@ -964,6 +964,33 @@ func (s *Server) HandleHealthz(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "OK\n")
 }
 
+// HandleJetStreamLimits
+func (s *Server) HandleJetStreamLimits(w http.ResponseWriter, req *http.Request) {
+	var (
+		size   int
+		status int = http.StatusOK
+		err    error
+	)
+	defer func() {
+		s.processErr(err, status, w, req)
+		s.log.traceRequest(req, size, status, time.Now())
+	}()
+
+	err = s.verifyAuth(w, req)
+	if err != nil {
+		status = http.StatusUnauthorized
+		return
+	}
+
+	switch req.Method {
+	case "PUT":
+	case "DELETE":
+	default:
+		status = http.StatusMethodNotAllowed
+		err = fmt.Errorf("%s is not allowed on %q", req.Method, req.URL.Path)
+	}
+}
+
 func (s *Server) verifyAuth(w http.ResponseWriter, req *http.Request) error {
 	if req.TLS != nil && len(req.TLS.PeerCertificates) > 0 {
 		cert := req.TLS.PeerCertificates[0]
