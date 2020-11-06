@@ -984,7 +984,42 @@ func (s *Server) HandleJetStreamLimits(w http.ResponseWriter, req *http.Request)
 
 	switch req.Method {
 	case "PUT":
+		s.log.Debugf("Updating jetstream limits")
+		var payload []byte
+		payload, err = ioutil.ReadAll(req.Body)
+		if err != nil {
+			status = http.StatusInternalServerError
+			return
+		}
+		size = len(payload)
+
+		// Validate that it is a permission
+		var c *api.GlobalJetStream
+		err = json.Unmarshal(payload, &c)
+		if err != nil {
+			status = http.StatusBadRequest
+			return
+		}
+		s.log.Tracef("Global JetStream: %+v", c)
+
+		err = s.storeGloablJetStream(c)
+		if err != nil {
+			status = http.StatusInternalServerError
+			return
+		}
+		fmt.Fprintf(w, "OK\n")
 	case "DELETE":
+		s.log.Debugf("Deleting jetstream limits")
+		err = s.deleteGloablJetStream()
+		if err != nil {
+			if os.IsNotExist(err) {
+				status = http.StatusNotFound
+			} else {
+				status = http.StatusInternalServerError
+			}
+			return
+		}
+		fmt.Fprintf(w, "OK\n")
 	default:
 		status = http.StatusMethodNotAllowed
 		err = fmt.Errorf("%s is not allowed on %q", req.Method, req.URL.Path)
