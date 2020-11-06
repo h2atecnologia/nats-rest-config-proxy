@@ -501,7 +501,6 @@ func (s *Server) buildConfigSnapshotV2(snapshotName string) error {
 	globalUsers = mergeDuplicateUsers(globalUsers)
 
 	// Create the include file
-	var authIncludes string
 	if len(globalUsers) > 0 {
 		type globalUsersConfig struct {
 			Users []*api.ConfigUser `json:"users"`
@@ -520,7 +519,18 @@ func (s *Server) buildConfigSnapshotV2(snapshotName string) error {
 		}
 	}
 
+
+	var authIncludes string
 	authIncludes += fmt.Sprintf("accounts {\n%s\n}\n", authContent)
+
+	if c, err := s.getGloablJetStream(); err == nil {
+		jsContent, err := marshalIndent(c)
+		if err != nil {
+			return err
+		}
+		authIncludes += fmt.Sprintf("jetstream %s\n", jsContent)
+	}
+
 	err = s.storeSnapshotConfigV2(snapshotName, []byte(authIncludes))
 	if err != nil {
 		return err

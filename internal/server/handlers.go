@@ -984,7 +984,7 @@ func (s *Server) HandleJetStreamLimits(w http.ResponseWriter, req *http.Request)
 
 	switch req.Method {
 	case "PUT":
-		s.log.Debugf("Updating jetstream limits")
+		s.log.Infof("Updating jetstream limits")
 		var payload []byte
 		payload, err = ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -1009,7 +1009,7 @@ func (s *Server) HandleJetStreamLimits(w http.ResponseWriter, req *http.Request)
 		}
 		fmt.Fprintf(w, "OK\n")
 	case "DELETE":
-		s.log.Debugf("Deleting jetstream limits")
+		s.log.Infof("Deleting jetstream limits")
 		err = s.deleteGloablJetStream()
 		if err != nil {
 			if os.IsNotExist(err) {
