@@ -529,6 +529,36 @@ func (s *Server) buildConfigSnapshotV2(snapshotName string) error {
 	return s.validateSnapshotConfigV2(snapshotName)
 }
 
+func (s *Server) getGloablJetStream() (*api.GlobalJetStream, error) {
+	path := filepath.Join(s.currentConfigDir(), "jetstream.conf")
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var v *api.GlobalJetStream
+	if err := json.Unmarshal(data, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (s *Server) storeGloablJetStream(c *api.GlobalJetStream) error {
+	data, err := marshalIndent(c)
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Join(s.currentConfigDir(), "jetstream.conf")
+	return ioutil.WriteFile(path, data, 0666)
+}
+
+func (s *Server) deleteGloablJetStream() error {
+	path := filepath.Join(s.currentConfigDir(), "jetstream.conf")
+	return os.Remove(path)
+}
+
+
 // mergeDuplicateUsers takes an array of users and merges the permissions of
 // users that have the same name. The caller should make sure that all of the
 // users in the given array are from the same account.
